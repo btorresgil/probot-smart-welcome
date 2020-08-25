@@ -1,6 +1,6 @@
 {
   "name": "probot-smart-welcome",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Welcomes people to a repo and congratulates them on contributions",
   "author": "Brian Torres-Gil <brian@ixi.us> (https://github.com/btorresgil)",
   "license": "ISC",
