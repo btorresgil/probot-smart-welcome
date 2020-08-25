@@ -1,0 +1,52 @@
+{
+  "name": "probot-smart-welcome",
+  "version": "0.0.0",
+  "description": "Welcomes people to a repo and congratulates them on contributions",
+  "author": "Brian Torres-Gil <brian@ixi.us> (https://github.com/btorresgil)",
+  "license": "ISC",
+  "homepage": "https://github.com/btorresgil/probot-smart-welcome",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/btorresgil/probot-smart-welcome.git"
+  },
+  "bugs": {
+    "url": "https://github.com/btorresgil/probot-smart-welcome/issues"
+  },
+  "keywords": [
+    "probot",
+    "github",
+    "probot-app",
+    "welcome",
+    "bot"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "nodemon --exec \"npm start\"",
+    "start": "probot run ./lib/index.js",
+    "lint": "prettier --write .",
+    "lint:check": "prettier --check .",
+    "test": "jest",
+    "test:watch": "jest --watch --notify --notifyMode=change --coverage"
+  },
+  "dependencies": {
+    "probot": "^10.0.1",
+    "source-map-support": "^0.5.19"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.10",
+    "@types/nock": "^11.1.0",
+    "@types/node": "^14.6.0",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
+    "eslint": "^7.7.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-config-typescript": "^3.0.0",
+    "jest": "^26.4.2",
+    "nock": "^13.0.4",
+    "nodemon": "^2.0.4",
+    "prettier": "2.1.0",
+    "smee-client": "^1.2.2",
+    "ts-jest": "^26.2.0",
+    "typescript": "^4.0.2"
+  }
+}

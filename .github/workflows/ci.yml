@@ -1,0 +1,127 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - beta
+      - alpha
+      - '[0-9]+.x'
+      - '[0-9]+.[0-9]+.x'
+  pull_request:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache npm modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  lint:
+    name: Lint Check
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache npm modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - run: npm ci
+      - run: npm run lint:check
+
+  docker_build:
+    name: Docker Build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Publish Docker image (branch)
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository:
+            ${{ github.repository }}/${{ github.event.repository.name }}
+          tag_with_ref: true
+          push:
+            ${{ github.event_name == 'push' && github.ref ==
+            'refs/heads/develop' }}
+
+  release:
+    name: Release
+    if: github.event_name == 'push' && github.ref != 'refs/heads/develop'
+    needs: [test, lint, docker_build]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Semantic Release
+        id: release
+        uses: cycjimmy/semantic-release-action@v2
+        with:
+          semantic_version: 17.1.1
+          extra_plugins: |
+            conventional-changelog-conventionalcommits@^4.4.0
+            @semantic-release/git@^9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Docker image (branch)
+        if: >-
+          steps.release.outputs.new_release_published == 'true' && (github.ref
+          == 'refs/heads/master' || github.ref == 'refs/heads/beta' ||
+          github.ref == 'refs/heads/alpha')
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository:
+            ${{ github.repository }}/${{ github.event.repository.name }}
+          tag_with_ref: true
+
+      - name: Publish Docker image (semver)
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository:
+            ${{ github.repository }}/${{ github.event.repository.name }}
+          tags: >-
+            ${{ steps.release.outputs.new_release_major_version }},${{
+            steps.release.outputs.new_release_major_version }}.${{
+            steps.release.outputs.new_release_minor_version }},${{
+            steps.release.outputs.new_release_version }}
