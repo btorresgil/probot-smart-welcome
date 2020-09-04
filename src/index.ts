@@ -50,7 +50,7 @@ export = (app: Application): void => {
     'pull_request.opened',
     async (context): Promise<void> => {
       const config = await fetchConfiguration(context)
-      const user = context.payload.issue.user
+      const user = context.payload.pull_request.user
 
       if (!config.newPRWelcomeComment) {
         return
